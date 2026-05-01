@@ -12,12 +12,12 @@
 
 
 
-📖 Description
+##📖 Description
 
 A browser-based Tic Tac Toe game with persistent score tracking using PHP and MySQL.
 
 
-⚙️ Features
+##⚙️ Features
 
 
 Interactive UI (HTML/CSS/JS)
@@ -29,7 +29,7 @@ Score history stored in database
 Fetch API integration
 
 
-🛠️ Tech Stack
+##🛠️ Tech Stack
 
 HTML, CSS, JavaScript
 
@@ -38,7 +38,7 @@ PHP
 MySQL
 
 
-▶️ How to Run (Updated)
+##▶️ How to Run (Updated)
 
 
 Start Apache & MySQL (XAMPP)
@@ -59,7 +59,7 @@ Database will be created automatically
 - View score history
 
 
-📸 Demo
+##📸 Demo
 
 <img width="1600" height="845" alt="WhatsApp Image 2026-04-28 at 8 50 45 PM" src="https://github.com/user-attachments/assets/315765a4-824e-4e49-9251-f31cb8ef42d8" />
 -------------------------------------------------------------------------
@@ -68,7 +68,7 @@ Database will be created automatically
 <img width="636" height="873" alt="WhatsApp Image 2026-04-28 at 9 02 57 PM" src="https://github.com/user-attachments/assets/329317f7-b593-4dac-9a2d-665030c8be99" />
 
 
-⚠️ Limitations
+##⚠️ Limitations
 
 Localhost only
 

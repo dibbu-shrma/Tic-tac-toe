@@ -50,6 +50,15 @@ Open: http://localhost/tictactoe/index.html
 Database will be created automatically
 
 
+## 🚀 Usage
+
+- Enter player names
+
+- Play the game
+
+- View score history
+
+
 📸 Demo
 
 <img width="1600" height="845" alt="WhatsApp Image 2026-04-28 at 8 50 45 PM" src="https://github.com/user-attachments/assets/315765a4-824e-4e49-9251-f31cb8ef42d8" />

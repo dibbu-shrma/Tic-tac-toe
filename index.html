@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Tic Tac Toe</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700&display=swap" rel="stylesheet"/>
+
+  <style>
+    /* =============================================
+       CSS VARIABLES — change colours here easily
+    ============================================= */
+    :root {
+      --bg:        #1a1a2e;   /* dark navy background */
+      --card:      #16213e;   /* slightly lighter card bg */
+      --border:    #0f3460;   /* border colour */
+      --accent:    #e94560;   /* red-pink accent */
+      --x-color:   #e94560;   /* X is red */
+      --o-color:   #4fc3f7;   /* O is blue */
+      --text:      #eaeaea;   /* main text */
+      --muted:     #8892a4;   /* grey text */
+      --win-glow:  #ffd700;   /* gold for winner highlight */
+    }
+
+    /* =============================================
+       RESET & BASE STYLES
+    ============================================= */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Nunito', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px;
+    }
+
+    /* =============================================
+       HEADER
+    ============================================= */
+    h1 {
+      font-family: 'Fredoka One', cursive;
+      font-size: 2.8rem;
+      color: var(--accent);
+      letter-spacing: 2px;
+      margin-bottom: 6px;
+      text-shadow: 0 0 20px rgba(233, 69, 96, 0.4);
+    }
+
+    .subtitle {
+      color: var(--muted);
+      font-size: 0.95rem;
+      margin-bottom: 28px;
+    }
+
+    /* =============================================
+       PLAYER NAME INPUTS
+    ============================================= */
+    .player-names {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 22px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .name-group {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .name-group label {
+      font-size: 0.85rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .name-group.x-label label { color: var(--x-color); }
+    .name-group.o-label label { color: var(--o-color); }
+
+    .name-group input {
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: 'Nunito', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      padding: 8px 14px;
+      text-align: center;
+      width: 150px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .name-group.x-label input:focus { border-color: var(--x-color); }
+    .name-group.o-label input:focus { border-color: var(--o-color); }
+
+    /* =============================================
+       STATUS BAR  (whose turn / who won)
+    ============================================= */
+    #status {
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-bottom: 20px;
+      min-height: 30px;
+      text-align: center;
+      transition: color 0.3s;
+    }
+
+    /* =============================================
+       THE 3×3 BOARD
+    ============================================= */
+    #board {
+      display: grid;
+      grid-template-columns: repeat(3, 110px);
+      grid-template-rows:    repeat(3, 110px);
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+
+    
+    .cell {
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: 16px;
+      cursor: pointer;
+      font-family: 'Fredoka One', cursive;
+      font-size: 3rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.15s, transform 0.1s, border-color 0.2s;
+      user-select: none;  
+    }
+
+    .cell:hover:not(.taken) {
+      background: #1f2f5a;
+      transform: scale(1.04);
+    }
+
+    .cell.x { color: var(--x-color); }
+    .cell.o { color: var(--o-color); }
+
+    .cell.taken { cursor: default; }
+
+    .cell.winner-cell {
+      border-color: var(--win-glow);
+      background: rgba(255, 215, 0, 0.12);
+      animation: pulse 0.6s ease infinite alternate;
+    }
+
+    @keyframes pulse {
+      from { box-shadow: 0 0 8px rgba(255,215,0,0.3); }
+      to   { box-shadow: 0 0 22px rgba(255,215,0,0.7); }
+    }
+
+    /* =============================================
+       BUTTONS
+    ============================================= */
+    .btn-row {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 32px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    button {
+      border: none;
+      border-radius: 12px;
+      cursor: pointer;
+      font-family: 'Nunito', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      padding: 10px 26px;
+      transition: transform 0.1s, opacity 0.2s;
+    }
+
+    button:hover  { opacity: 0.88; }
+    button:active { transform: scale(0.97); }
+
+    #btn-restart {
+      background: var(--accent);
+      color: white;
+    }
+
+    #btn-history {
+      background: var(--border);
+      color: var(--text);
+    }
+
+    /* =============================================
+       SCOREBOARD  (session wins, not database)
+    ============================================= */
+    .scoreboard {
+      display: flex;
+      gap: 20px;
+      margin-bottom: 28px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .score-card {
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: 14px;
+      padding: 12px 22px;
+      text-align: center;
+      min-width: 100px;
+    }
+
+    .score-card .score-name {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+    }
+
+    .score-card .score-num {
+      font-family: 'Fredoka One', cursive;
+      font-size: 2rem;
+    }
+
+    .score-card.x-card .score-num { color: var(--x-color); }
+    .score-card.o-card .score-num { color: var(--o-color); }
+    .score-card.d-card .score-num { color: var(--muted); }
+
+    /* =============================================
+       HISTORY TABLE  (from database)
+    ============================================= */
+    #history-section {
+      display: none;  
+      width: 100%;
+      max-width: 520px;
+      margin-bottom: 20px;
+    }
+
+    #history-section h2 {
+      font-family: 'Fredoka One', cursive;
+      color: var(--o-color);
+      font-size: 1.4rem;
+      margin-bottom: 12px;
+      text-align: center;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+
+    th {
+      background: var(--border);
+      color: var(--muted);
+      font-weight: 700;
+      padding: 10px;
+      text-align: left;
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    td {
+      padding: 10px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(255,255,255,0.03); }
+
+    .winner-x { color: var(--x-color); font-weight: 700; }
+    .winner-o { color: var(--o-color); font-weight: 700; }
+    .winner-d { color: var(--muted); }
+
+    /* =============================================
+       RESPONSIVE — works on phones too
+    ============================================= */
+    @media (max-width: 420px) {
+      h1 { font-size: 2rem; }
+      #board {
+        grid-template-columns: repeat(3, 90px);
+        grid-template-rows:    repeat(3, 90px);
+        gap: 8px;
+      }
+      .cell { font-size: 2.4rem; border-radius: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+  
+  <h1>Tic Tac Toe</h1>
+  <p class="subtitle">Two players · One board · Let the battle begin!</p>
+
+  
+  <div class="player-names">
+    <div class="name-group x-label">
+      <label>Player X</label>
+      <input type="text" id="name-x" placeholder="Enter name" maxlength="20" value="Player X"/>
+    </div>
+    <div class="name-group o-label">
+      <label>Player O</label>
+      <input type="text" id="name-o" placeholder="Enter name" maxlength="20" value="Player O"/>
+    </div>
+  </div>
+
+  
+  <div id="status">X's turn</div>
+
+  
+  <div id="board"></div>
+
+ 
+  <div class="btn-row">
+    <button id="btn-restart" onclick="restartGame()">🔄 New Game</button>
+    <button id="btn-history" onclick="toggleHistory()">📜 Score History</button>
+  </div>
+
+  
+  <div class="scoreboard">
+    <div class="score-card x-card">
+      <div class="score-name" id="label-x">Player X</div>
+      <div class="score-num" id="score-x">0</div>
+    </div>
+    <div class="score-card d-card">
+      <div class="score-name">Draws</div>
+      <div class="score-num" id="score-d">0</div>
+    </div>
+    <div class="score-card o-card">
+      <div class="score-name" id="label-o">Player O</div>
+      <div class="score-num" id="score-o">0</div>
+    </div>
+  </div>
+
+  
+  <div id="history-section">
+    <div id="top-player"></div>
+    <h2>📋 Recent Games</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Player X</th>
+          <th>Player O</th>
+          <th>Winner</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody id="history-body">
+        <tr><td colspan="4" style="color:var(--muted);text-align:center">Loading...</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+
+  <!-- =============================================
+       JAVASCRIPT — All game logic lives here
+  ============================================= -->
+  <script>
+
+    let board        = ["","","","","","","","",""];  
+    let currentPlayer = "X";                          
+    let gameOver     = false;                         
+    let scores       = { X: 0, O: 0, D: 0 };         
+
+
+    const WIN_COMBOS = [
+      [0,1,2], [3,4,5], [6,7,8],  
+      [0,3,6], [1,4,7], [2,5,8],  
+      [0,4,8], [2,4,6]            
+    ];
+
+    // ── Build the Board ─────────────────────────
+    
+
+    function buildBoard() {
+      const boardEl = document.getElementById("board");
+      boardEl.innerHTML = ""; 
+
+      for (let i = 0; i < 9; i++) {
+        const cell = document.createElement("div");
+        cell.classList.add("cell");
+        cell.dataset.index = i;              
+        cell.onclick = () => handleClick(i); 
+        boardEl.appendChild(cell);
+      }
+    }
+
+    // ── Handle a Cell Click ─────────────────────
+    function handleClick(index) {
+      if (gameOver || board[index] !== "") return;
+
+      
+      board[index] = currentPlayer;
+
+      
+      const cell = document.querySelector(`[data-index='${index}']`);
+      cell.textContent = currentPlayer;
+      cell.classList.add(currentPlayer.toLowerCase(), "taken");
+
+      
+      const winCombo = getWinCombo();
+
+      if (winCombo) {
+        
+        const winnerName = currentPlayer === "X" ? getNameX() : getNameO();
+        document.getElementById("status").textContent = `🎉 ${winnerName} wins!`;
+        document.getElementById("status").style.color = currentPlayer === "X"
+          ? "var(--x-color)" : "var(--o-color)";
+        highlightWinners(winCombo);
+        scores[currentPlayer]++;
+        updateScoreboard();
+        saveScore(winnerName);   
+        gameOver = true;
+
+      } else if (board.every(cell => cell !== "")) {
+        
+        document.getElementById("status").textContent = "🤝 It's a Draw!";
+        document.getElementById("status").style.color = "var(--muted)";
+        scores.D++;
+        updateScoreboard();
+        saveScore("Draw");       
+        gameOver = true;
+
+      } else {
+        
+        currentPlayer = currentPlayer === "X" ? "O" : "X";
+        const nextName = currentPlayer === "X" ? getNameX() : getNameO();
+        document.getElementById("status").textContent = `${currentPlayer}'s turn — ${nextName}`;
+        document.getElementById("status").style.color = currentPlayer === "X"
+          ? "var(--x-color)" : "var(--o-color)";
+      }
+    }
+
+    // ── Check for a Winning Combination ─────────
+    
+    function getWinCombo() {
+      for (const combo of WIN_COMBOS) {
+        const [a, b, c] = combo;
+        if (board[a] && board[a] === board[b] && board[a] === board[c]) {
+          return combo; 
+        }
+      }
+      return null; 
+    }
+
+    // ── Highlight the Winning Cells ─────────────
+    function highlightWinners(combo) {
+      combo.forEach(i => {
+        document.querySelector(`[data-index='${i}']`).classList.add("winner-cell");
+      });
+    }
+
+    // ── Restart the Game ────────────────────────
+    function restartGame() {
+      board         = ["","","","","","","","",""];
+      currentPlayer = "X";
+      gameOver      = false;
+
+      document.getElementById("status").textContent = `${getNameX()}'s turn (X)`;
+      document.getElementById("status").style.color = "var(--x-color)";
+
+      buildBoard();  // redraw fresh cells
+    }
+
+    // ── Update the Scoreboard Display ───────────
+    function updateScoreboard() {
+      document.getElementById("score-x").textContent = scores.X;
+      document.getElementById("score-o").textContent = scores.O;
+      document.getElementById("score-d").textContent = scores.D;
+      document.getElementById("label-x").textContent = getNameX();
+      document.getElementById("label-o").textContent = getNameO();
+    }
+
+    // ── Get Player Names ────────────────────────
+    function getNameX() {
+      return document.getElementById("name-x").value.trim() || "Player X";
+    }
+    function getNameO() {
+      return document.getElementById("name-o").value.trim() || "Player O";
+    }
+
+    // ── Save Score to Database (via PHP) ─────────
+   
+    function saveScore(winner) {
+      fetch("save_score.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          player_x: getNameX(),
+          player_o: getNameO(),
+          winner:   winner
+        })
+      })
+      .then(response => response.json())
+      .then(data => {
+        console.log("Score saved:", data.message);
+      })
+      .catch(error => {
+        console.log("Could not save score (is PHP server running?):", error);
+      });
+    }
+
+    // ── Load Score History from Database ─────────
+    function loadHistory() {
+  fetch("get_scores.php")
+    .then(response => {
+      if (!response.ok) throw new Error("HTTP error");
+      return response.json();
+    })
+    .then(data => {
+      const scores = data.history || [];
+      const top = data.top_player;
+
+      const tbody = document.getElementById("history-body");
+      const topDiv = document.getElementById("top-player");
+
+      
+      topDiv.textContent = top
+        ? `🏆 Top Player: ${top.winner} (${top.wins} wins)`
+        : "🏆 No top player yet";
+
+      
+      if (scores.length === 0) {
+        tbody.innerHTML =
+          `<tr><td colspan="4" style="text-align:center">No games played yet.</td></tr>`;
+        return;
+      }
+
+      // 🔹 Build table
+      tbody.innerHTML = scores.map(row => {
+        let winClass = "winner-d";
+        if (row.winner !== "Draw") {
+          winClass = row.winner === row.player_x ? "winner-x" : "winner-o";
+        }
+
+        const date = new Date(row.played_at);
+        const dateStr =
+          date.toLocaleDateString() + " " +
+          date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+        return `
+          <tr>
+            <td>${row.player_x}</td>
+            <td>${row.player_o}</td>
+            <td class="${winClass}">${row.winner}</td>
+            <td style="font-size:0.8rem">${dateStr}</td>
+          </tr>`;
+      }).join("");
+    })
+    .catch(error => {
+      console.error(error);
+      document.getElementById("history-body").innerHTML =
+        `<tr><td colspan="4" style="text-align:center">Error loading history</td></tr>`;
+    });
+}
+
+    // ── Toggle History Section ───────────────────
+    function toggleHistory() {
+      const section = document.getElementById("history-section");
+      const isHidden = section.style.display === "none" || section.style.display === "";
+
+      if (isHidden) {
+        section.style.display = "block";
+        loadHistory();  
+        document.getElementById("btn-history").textContent = "✖ Hide History";
+      } else {
+        section.style.display = "none";
+        document.getElementById("btn-history").textContent = "📜 Score History";
+      }
+
+      fetch("get_winner.php")
+      .then(res => res.json())
+      .then(data => {
+        alert(`Top player: ${data.winner} (${data.wins} wins)`);
+      });
+    }
+  
+    document.getElementById("name-x").addEventListener("input", updateScoreboard);
+    document.getElementById("name-o").addEventListener("input", updateScoreboard);
+
+    // ── Start the Game ───────────────────────────
+    buildBoard();
+    updateScoreboard();
+
+  </script>
+</body>
+</html>
